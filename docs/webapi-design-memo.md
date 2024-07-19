@@ -58,14 +58,17 @@ POST /api/games/latest/turns
 
 '''json
 {
-  "id": 1,
-  "winnerDisc": 1,
-  "startedAt": "YYYY-MM-DD hh:mm:ss"
-},
-{
-  "id": 2,
-  "winnerDisc": 1,
-  "startedAt": "YYYY-MM-DD hh:mm:ss"
+  "games": [
+  {
+      "id": 1,
+    "winnerDisc": 1,
+    "startedAt": "YYYY-MM-DD hh:mm:ss"
+  },
+  {
+    "id": 2,
+    "winnerDisc": 1,
+    "startedAt": "YYYY-MM-DD hh:mm:ss"
+  }
+  ]
 }
 '''
-
