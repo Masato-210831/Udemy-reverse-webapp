@@ -9,6 +9,9 @@ const app = express();
 // 開発中のログの出力
 app.use(morgan("dev"));
 
+// 静的ファイルの定義:localhost:3000でindex.htmlが表示される
+app.use(express.static('static',{extensions: ['html']}))
+
 // エンドポイントの定義
 app.get("/api/hello", async (req, res) => {
   res.json({
