@@ -29,7 +29,7 @@ create table moves (
 );
 
 create table squares (
-  id int primary key,
+  id int primary key auto_increment,
   turn_id int not null,
   x int not null,
   y int not null,
