@@ -15,6 +15,8 @@ const INITIAL_BOARD = [
 
 const boardElement = document.getElementById("board");
 async function showBoard() {
+  
+
   // showBoardが呼ばれたら、boardElementの子要素を全て削除する
   while (boardElement.firstChild) {
     boardElement.removeChild(boardElement.firstChild);

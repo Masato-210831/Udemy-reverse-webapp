@@ -44,12 +44,7 @@ app.post("/api/games", async (req, res) => {
   const now = new Date();
 
   // mysqlとの連携
-  const conn = await mysql.createConnection({
-    host: "localhost",
-    database: "reversi",
-    user: "reversi",
-    password: "password",
-  });
+  const conn = await connectMySQL();
 
   try {
     await conn.beginTransaction();
@@ -60,42 +55,91 @@ app.post("/api/games", async (req, res) => {
       [now]
     );
 
-    const gameId = gameInsertResult[0].insertId
+    const gameId = gameInsertResult[0].insertId;
 
     // turnsテーブルの初期化
     const turnInsertResult = await conn.execute<ResultSetHeader>(
-      "insert into turns (game_id, turn_count, next_disc ,end_at) values (?, ?, ?, ?)", [gameId, 0, DARK, now]
-    )
-    
-    const turnId = turnInsertResult[0].insertId
+      "insert into turns (game_id, turn_count, next_disc ,end_at) values (?, ?, ?, ?)",
+      [gameId, 0, DARK, now]
+    );
+
+    const turnId = turnInsertResult[0].insertId;
 
     // マス目の数を累積で数える
-    const squareCount = INITIAL_BOARD.map(line => line.length).reduce(
-      (v1, v2) => v1 + v2, 0
-    )
+    const squareCount = INITIAL_BOARD.map((line) => line.length).reduce(
+      (v1, v2) => v1 + v2,
+      0
+    );
 
-    const squaresInsertSql = 'insert into squares (turn_id, x, y, disc) values ' + Array.from(Array(squareCount)).map(() => '(?, ?, ?, ?)').join(', ')
+    const squaresInsertSql =
+      "insert into squares (turn_id, x, y, disc) values " +
+      Array.from(Array(squareCount))
+        .map(() => "(?, ?, ?, ?)")
+        .join(", ");
 
     // squaresInsertSqlの64の(?,?,?,?)に入るvaluesの配列を定義
-    const squaresInsertValues: any[] = []
+    const squaresInsertValues: any[] = [];
     INITIAL_BOARD.forEach((line, y) => {
       line.forEach((disc, x) => {
-        squaresInsertValues.push(turnId)
-        squaresInsertValues.push(x)
-        squaresInsertValues.push(y)
-        squaresInsertValues.push(disc)
-      })
-    })
+        squaresInsertValues.push(turnId);
+        squaresInsertValues.push(x);
+        squaresInsertValues.push(y);
+        squaresInsertValues.push(disc);
+      });
+    });
 
-    await conn.execute(squaresInsertSql, squaresInsertValues)
-     
+    await conn.execute(squaresInsertSql, squaresInsertValues);
 
     await conn.commit();
   } finally {
     await conn.end();
   }
-
   res.status(201).end();
+});
+
+// この書き方はexpressのルール
+app.get("/api/games/latest/turns/:turnCount", async (req, res) => {
+  // turnCountの取得
+  const turnCount = parseInt(req.params.turnCount);
+
+  const conn = await connectMySQL();
+  try {
+    const gameSelectResult = await conn.execute<mysql.RowDataPacket[]>(
+      "select id, started_at from games order by id desc limit 1"
+    );
+    const game = gameSelectResult[0][0];
+
+    const turnSelectResult = await conn.execute<mysql.RowDataPacket[]>(
+      "select id, game_id, turn_count, next_disc, end_at from turns where game_id = ? and turn_count = ?",
+      [game["id"], turnCount]
+    );
+
+    const turn = turnSelectResult[0][0];
+
+    const squaresSelectResult = await conn.execute<mysql.RowDataPacket[]>(
+      "select id, turn_id, x, y, disc from squares where turn_id = ?",
+      [turn["id"]]
+    );
+    const squares = squaresSelectResult[0];
+
+    const board = Array.from(Array(8)).map(() => Array.from(Array(8)));
+
+    squares.forEach((s) => {
+      squares.forEach((s) => (board[s.y][s.x] = s.disc));
+    });
+
+    const responseBody = {
+      turnCount,
+      board,
+      nextDisc: turn["next_disc"],
+      // TODO 決着がついている場合、game_resultsテーブルから取得する
+      winnerDisc: null,
+    };
+
+    res.json(responseBody);
+  } finally {
+    conn.end();
+  }
 });
 
 // エラーが発生したら実行
@@ -120,5 +164,15 @@ function errorHandler(
   // ページの表示(Response)
   res.status(500).send({
     message: "Unexpected error occurred",
+  });
+}
+
+// db接続の関数
+async function connectMySQL() {
+  return await mysql.createConnection({
+    host: "localhost",
+    database: "reversi",
+    user: "reversi",
+    password: "password",
   });
 }
