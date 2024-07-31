@@ -35,13 +35,13 @@ export class TurnGateway {
     turnCount: number,
     nextDisc: number,
     endAt: Date
-  ):Promise<TurnRecord> {
+  ): Promise<TurnRecord> {
     const turnInsertResult = await conn.execute<mysql.ResultSetHeader>(
       "insert into turns (game_id, turn_count, next_disc ,end_at) values (?, ?, ?, ?)",
       [gameId, turnCount, nextDisc, endAt]
     );
     const turnId = turnInsertResult[0].insertId;
 
-    return new TurnRecord(turnId, gameId, turnCount, nextDisc, endAt)
+    return new TurnRecord(turnId, gameId, turnCount, nextDisc, endAt);
   }
 }
