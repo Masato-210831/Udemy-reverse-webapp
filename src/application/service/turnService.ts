@@ -1,8 +1,9 @@
-import { connectMySQL } from "../infrastructure/connection";
-import { GameRepository } from "../domain/game/gameRepository";
-import { toDisc } from "../domain/turn/disc";
-import { Point } from "../domain/turn/point";
-import { TurnRepository } from "../domain/turn/turnRepository";
+import { connectMySQL } from "../../infrastructure/connection";
+import { GameRepository } from "../../domain/model/game/gameRepository";
+import { toDisc } from "../../domain/model/turn/disc";
+import { Point } from "../../domain/model/turn/point";
+import { TurnRepository } from "../../domain/model/turn/turnRepository";
+import { ApplicationError } from "../error/applicationError";
 
 const turnRepository = new TurnRepository();
 const gameRepository = new GameRepository();
@@ -40,7 +41,7 @@ export class TurnService {
     try {
       const game = await gameRepository.findLatest(conn);
       if (!game) {
-        throw new Error("Latest game not exist");
+        throw new ApplicationError("LatestGameNotFount", "Latest game not exist");
       }
 
       if (!game.id) {
@@ -73,7 +74,7 @@ export class TurnService {
       // 1つ前のターンを取得する
       const game = await gameRepository.findLatest(conn);
       if (!game) {
-        throw new Error("Latest game not exist");
+        throw new ApplicationError("LatestGameNotFount", "Latest game not exist");
       }
 
       if (!game.id) {
