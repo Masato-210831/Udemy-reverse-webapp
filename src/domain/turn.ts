@@ -59,4 +59,8 @@ export class Turn {
     return this._board
   }
 
+  get move() {
+    return this._move
+  }
+
 }
