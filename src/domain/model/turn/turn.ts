@@ -1,4 +1,5 @@
 import { DomainError } from "../../error/domainError";
+import { WinnerDisc } from "../gameResult/winnerDisc";
 import { Board, initialBoard } from "./board";
 import { Disc } from "./disc";
 import { Move } from "./move";
@@ -8,7 +9,7 @@ export class Turn {
   constructor(
     private _gameId: number,
     private _turnCount: number,
-    private _nextDisc: Disc,
+    private _nextDisc: Disc | undefined,
     private _move: Move | undefined,
     private _board: Board,
     private _endAt: Date
@@ -26,9 +27,8 @@ export class Turn {
     // newMoveから次の盤面を作成
     const nextBoard = this._board.place(newMove);
 
-    // 次のdisc
-    // TODO 次の石がおけない場合はスキップする
-    const nextDisc = disc === Disc.Dark ? Disc.Light : Disc.Dark;
+    // 次のdiscい場合はスキップする
+    const nextDisc = this.decideNextDisc(nextBoard, disc)
 
     return new Turn(
       this._gameId,
@@ -38,6 +38,43 @@ export class Turn {
       nextBoard,
       new Date()
     );
+  }
+
+  gameEnd(): boolean {
+    return this.nextDisc === undefined
+  }
+
+  winnerDisc(): WinnerDisc {
+    const darkCount = this._board.count(Disc.Dark)
+    const LightCount = this._board.count(Disc.Light)
+
+    if (darkCount === LightCount) {
+      return WinnerDisc.Draw
+    } else if (darkCount > LightCount) {
+      return WinnerDisc.Dark
+    }  else {
+      return WinnerDisc.Light
+    }
+
+  }
+
+  private decideNextDisc(board: Board, previousDisc: Disc): Disc | undefined {
+    const existDarkValidMove = board.existValidMove(Disc.Dark)
+    const existLightValidMove = board.existValidMove(Disc.Light)
+
+    if (existDarkValidMove && existLightValidMove) {
+      // 両方の石が置ける
+      return previousDisc === Disc.Dark ? Disc.Light : Disc.Dark
+    } else if (!existDarkValidMove && !existLightValidMove) {
+      // 両方の石が置けない
+      return undefined
+    } else if (existDarkValidMove) {
+      return Disc.Dark
+    } else {
+      return Disc.Light
+    }
+
+
   }
 
   get gameId() {

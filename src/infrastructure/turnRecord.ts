@@ -3,7 +3,7 @@ export class TurnRecord {
     private _id: number,
     private _game_id: number,
     private _turn_count: number,
-    private _next_disc: number,
+    private _next_disc: number | undefined,
     private _end_at: Date
   ){}
 
