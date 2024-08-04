@@ -24,10 +24,10 @@ export class GameResultGateWay {
     // );
 
     return new GameResultRecord(
-      record['id'],
-      record['game_id'],
-      record['winner_disc'],
-      record['end_at']
+      record["id"],
+      record["game_id"],
+      record["winner_disc"],
+      record["end_at"]
     );
   }
 
@@ -38,8 +38,8 @@ export class GameResultGateWay {
     endAt: Date
   ) {
     await conn.execute(
-      'insert into game_results (game_id, winner_disc, end_at) values (?, ?, ?)', [gameId, winnerDisc, endAt]
-    )
+      "insert into game_results (game_id, winner_disc, end_at) values (?, ?, ?)",
+      [gameId, winnerDisc, endAt]
+    );
   }
 }
-

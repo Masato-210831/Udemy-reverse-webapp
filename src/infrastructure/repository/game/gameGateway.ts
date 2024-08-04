@@ -1,5 +1,5 @@
 import { GameRecord } from "./gameRecord";
-import mysql from 'mysql2/promise'
+import mysql from "mysql2/promise";
 
 export class GameGateway {
   async findLatest(conn: mysql.Connection): Promise<GameRecord | undefined> {
@@ -8,11 +8,11 @@ export class GameGateway {
     );
     const record = gameSelectResult[0][0];
 
-    if(!record) {
-      return undefined
+    if (!record) {
+      return undefined;
     }
 
-    return new GameRecord(record['id'], record['started_at'])
+    return new GameRecord(record["id"], record["started_at"]);
   }
 
   async insert(conn: mysql.Connection, startedAt: Date): Promise<GameRecord> {
@@ -23,7 +23,6 @@ export class GameGateway {
 
     const gameId = gameInsertResult[0].insertId;
 
-    return new GameRecord(gameId, startedAt)
-
+    return new GameRecord(gameId, startedAt);
   }
 }
